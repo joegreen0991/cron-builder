@@ -232,28 +232,9 @@ var Cron = function(){
     },
     Util = {
         'dom' : {
-            'text' : function(text)
-            {
-                return document.createTextNode(text);
-            },
-            'createElement' : function(el,content,params)
-            {
-                var el = document.createElement(el);
-                
-                el.innerHTML = content || '';
-                
-                for(var i in params || {}) el.setAttribute(i,params[i]);
-                
-                return el;
-            },
-            'append' : function(el, append)
-            {
-                for(var i = 0; i < append.length; i++)
-                {
-                    el.appendChild(append[i]);
-                }
-                return el;
-            }
+            'text' : function(text){return document.createTextNode(text);},
+            'createElement' : function(el,content,params){var el = document.createElement(el); el.innerHTML = content || '';for(var i in params || {}) el.setAttribute(i,params[i]);return el;},
+            'append' : function(el, append){for(var i = 0; i < append.length; i++) el.appendChild(append[i]);return el;}
         },
         'loop' : function(o,c){for (var i = 0; i < o.length; i++) {c.call(o[i],i);}},
         'extend' : function(){var e=function(t,n){for(var r in n){if(n.hasOwnProperty(r)){var i=n[r];if(t.hasOwnProperty(r)&&typeof t[r]==="object"&&typeof i==="object"){e(t[r],i)}else{t[r]=i}}}return t};var t={};for(var n=0;n<arguments.length;n++){t=e(t,arguments[n])}return t},
