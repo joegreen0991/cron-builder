@@ -1,10 +1,95 @@
 var Cron = function(){
      
-    /**
-    * Cross browser event handling
-     */
+    var Cron = function(parent){
+                    
+            var choosers = {
+                'min'   :  Cron.Chooser({range:{end: 59}},{'multiple':'multiple'}),
+                'hour'  :  Cron.Chooser({range:{end: 23}},{'multiple':'multiple'}),
+                'dow'   :  Cron.Chooser({values:'Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday'.split('|')},{'multiple':'multiple'}),
+                'dom'   :  Cron.Chooser({range:{start:1, end:31}},{'multiple':'multiple'}),
+                'month' :  Cron.Chooser({values:'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec'.split('|')},{'multiple':'multiple'})
+            },
+                    
+            time = [Util.dom.text(' at '), choosers.hour, Util.dom.text(':'), choosers.min],
+            
+            runEvery = {
+                values : ['Minute', 'Hour', 'Day', 'Week', 'Month', 'Year'],
+                options: [
+                    [],
+                    [Util.dom.text(' at '), choosers.min, Util.dom.text(' minutes past the hour')],
+                    time,
+                    [Util.dom.text(' on '), choosers.dow].concat(time),
+                    [Util.dom.text(' on the '), choosers.dom].concat(time),
+                    [Util.dom.text(' on the '), choosers.dom, Util.dom.text(' of '), choosers.month].concat(time)
+                ],
+                build : [
+                    ['*', '*', '*' , '*', '*'],
+                    ['min', '*', '*' , '*', '*'],
+                    ['min', 'hour', '*' , '*', '*'],
+                    ['min', 'hour', 'dow' , '*', '*'],
+                    ['min', 'hour', 'dow' , 'dom', '*'],
+                    ['min', 'hour', 'dow' , 'dom', 'month']
+                ]
+            },
+                    
+            cronType = Cron.Chooser({values:runEvery.values}),
+            
+            getSelectOptions = function(el){
+                var selected = [];
+                for (var i = 0; i < el.options.length; i++) {
+                    if (el.options[i].selected) selected.push(el.options[i].value);
+                }
+                return selected;
+            },
+            
+            build = function()
+            {
+                parent.innerHTML = '';
 
-    var Event = function(window,document){
+                Util.dom.append(parent, [Util.dom.text('Every '), cronType]);
+
+                Util.dom.append(parent, runEvery.options[cronType.value]);
+            };
+        
+        Cron.Event.change(cronType, function(){
+            build();
+            evaluate();
+        });
+        
+        for(var i in choosers){
+            Cron.Event.change(choosers[i], function(){
+                evaluate();
+            });
+        }
+        
+        
+        build();
+        
+        var evaluate = this.evaluate = function()
+        {
+            var cron = [];
+            
+            for(var i in runEvery.build[cronType.value])
+            {
+                var k = runEvery.build[cronType.value][i];
+                cron.push(choosers[k] ? (getSelectOptions(choosers[k]).join(',') || '*') : '*');
+            }
+            return cron.join(' ');
+        };
+    },
+    Util = {
+        'dom' : {
+            'text' : function(text){return document.createTextNode(text);},
+            'createElement' : function(el,content,params){var el = document.createElement(el); el.innerHTML = content || '';for(var i in params || {}) el.setAttribute(i,params[i]);return el;},
+            'append' : function(el, append){for(var i = 0; i < append.length; i++) el.appendChild(append[i]);return el;}
+        },
+        'loop' : function(o,c){for (var i = 0; i < o.length; i++) {c.call(o[i],i);}},
+        'extend' : function(){var e=function(t,n){for(var r in n){if(n.hasOwnProperty(r)){var i=n[r];if(t.hasOwnProperty(r)&&typeof t[r]==="object"&&typeof i==="object"){e(t[r],i)}else{t[r]=i}}}return t};var t={};for(var n=0;n<arguments.length;n++){t=e(t,arguments[n])}return t},
+        'error' : function(message){throw new Error(message);}
+    };
+    
+
+    Cron.Event = function(){
 
             var Cache = {
                     cache : {},
@@ -132,121 +217,29 @@ var Cron = function(){
 
             return Exports;
 
-    }(window,document),
+    }();
     
-    Chooser = function(config, options) {
+    Cron.Chooser = function(config, options) {
         
-            var select = Util.dom.createElement('select','',options || {});
+        var select = Util.dom.createElement('select','',options || {});
 
-            if(config.range)
-            {
-                config.range.end && config.range.end > 1 || Util.error('Invalid range. "config.range.end" must be greater than 1.');
-
-                for(var i = config.range.start || 0; i <= config.range.end; i++)
-                {
-                    var j = (i < 10) ? '0' + i : i;
-                    select.appendChild(Util.dom.createElement('option',j,{value:i}));
-                }
-            }else{
-                for(var i in config.values)
-                {
-                    select.appendChild(Util.dom.createElement('option', config.values[i], {value:i}));
-                }
-            }
-
-            return Buildselect(select, {
-                onChange : function(){
-                    Event.trigger(select,'change');
-                }
-            });
-        },
-    
-    Cron = function(parent){
-                    
-            var choosers = {
-                'min'   :  Chooser({range:{end: 59}},{'multiple':'multiple'}),
-                'hour'  :  Chooser({range:{end: 23}},{'multiple':'multiple'}),
-                'dow'   :  Chooser({values:'Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday'.split('|')},{'multiple':'multiple'}),
-                'dom'   :  Chooser({range:{start:1, end:31}},{'multiple':'multiple'}),
-                'month' :  Chooser({values:'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec'.split('|')},{'multiple':'multiple'})
-            },
-                    
-            time = [Util.dom.text(' at '), choosers.hour, Util.dom.text(':'), choosers.min],
-            
-            runEvery = {
-                values : ['Minute', 'Hour', 'Day', 'Week', 'Month', 'Year'],
-                options: [
-                    [],
-                    [Util.dom.text(' at '), choosers.min, Util.dom.text(' minutes past the hour')],
-                    time,
-                    [Util.dom.text(' on '), choosers.dow].concat(time),
-                    [Util.dom.text(' on the '), choosers.dom].concat(time),
-                    [Util.dom.text(' on the '), choosers.dom, Util.dom.text(' of '), choosers.month].concat(time)
-                ],
-                build : [
-                    ['*', '*', '*' , '*', '*'],
-                    ['min', '*', '*' , '*', '*'],
-                    ['min', 'hour', '*' , '*', '*'],
-                    ['min', 'hour', 'dow' , '*', '*'],
-                    ['min', 'hour', 'dow' , 'dom', '*'],
-                    ['min', 'hour', 'dow' , 'dom', 'month']
-                ]
-            },
-                    
-            cronType = Chooser({values:runEvery.values}),
-            
-            getSelectOptions = function(el){
-                var selected = [];
-                for (var i = 0; i < el.length; i++) {
-                    if (el.options[i].selected) selected.push(el.options[i].value);
-                }
-                return selected;
-            },
-            
-            build = function()
-            {
-                parent.innerHTML = '';
-
-                Util.dom.append(parent, [Util.dom.text('Every'), cronType]);
-
-                Util.dom.append(parent, runEvery.options[cronType.select.value]);
-            };
-        
-        Event.change(cronType.select, function(){
-            build();
-            evaluate();
-        });
-        
-        for(var i in choosers){
-            Event.change(choosers[i].select, function(){
-                evaluate();
-            });
-        }
-        
-        
-        build();
-        
-        var evaluate = this.evaluate = function()
+        if(config.range)
         {
-            var cron = [];
-            
-            for(var i in runEvery.build[cronType.value])
+            config.range.end && config.range.end > 1 || Util.error('Invalid range. "config.range.end" must be greater than 1.');
+
+            for(var i = config.range.start || 0; i <= config.range.end; i++)
             {
-                var k = runEvery.build[cronType.value][i];
-                cron.push(choosers[k] ? (getSelectOptions(choosers[k]).join(',') || '*') : '*');
+                var j = (i < 10) ? '0' + i : i;
+                select.appendChild(Util.dom.createElement('option',j,{value:i}));
             }
-            return cron.join(' ');
-        };
-    },
-    Util = {
-        'dom' : {
-            'text' : function(text){return document.createTextNode(text);},
-            'createElement' : function(el,content,params){var el = document.createElement(el); el.innerHTML = content || '';for(var i in params || {}) el.setAttribute(i,params[i]);return el;},
-            'append' : function(el, append){for(var i = 0; i < append.length; i++) el.appendChild(append[i]);return el;}
-        },
-        'loop' : function(o,c){for (var i = 0; i < o.length; i++) {c.call(o[i],i);}},
-        'extend' : function(){var e=function(t,n){for(var r in n){if(n.hasOwnProperty(r)){var i=n[r];if(t.hasOwnProperty(r)&&typeof t[r]==="object"&&typeof i==="object"){e(t[r],i)}else{t[r]=i}}}return t};var t={};for(var n=0;n<arguments.length;n++){t=e(t,arguments[n])}return t},
-        'error' : function(message){throw new Error(message);}
+        }else{
+            for(var i in config.values)
+            {
+                select.appendChild(Util.dom.createElement('option', config.values[i], {value:i}));
+            }
+        }
+
+        return select;
     };
 
     
