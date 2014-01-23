@@ -12,14 +12,14 @@ var Cron = function(){
                             if(!Cache.cache[type]){
                                     Cache.cache[type] = [];
                             }
-                            Cache.cache[type].push([elem, type]);
+                            Cache.cache[type].push([elem, type, handler]);
                     },
                     get : function( elem, type ){
                             if(!Cache.cache[type]){
                                     return false;
                             }
-                            for(var i = 0; i < Cache.cache.length; i++){
-                                    if(Cache.cache[type][i][0] === elem) return type;
+                            for(var i = 0; i < Cache.cache[type].length; i++){
+                                if(Cache.cache[type][i][0] === elem) return Cache.cache[type][i][2];
                             }
                     }
             };
@@ -112,6 +112,11 @@ var Cron = function(){
 
                             Exports.bind(el,type,inFunc);
 
+                    },
+                    trigger : function(elem, type)
+                    {
+                        var handler = Cache.get(elem, type);
+                        handler && handler.call(elem, window.event);
                     }
             };
 
@@ -149,7 +154,11 @@ var Cron = function(){
                 }
             }
 
-            return select;
+            return Buildselect(select, {
+                onChange : function(){
+                    Event.trigger(select,'change');
+                }
+            });
         },
     
     Cron = function(parent){
@@ -200,17 +209,16 @@ var Cron = function(){
 
                 Util.dom.append(parent, [Util.dom.text('Every'), cronType]);
 
-                Util.dom.append(parent, runEvery.options[cronType.value]);
+                Util.dom.append(parent, runEvery.options[cronType.select.value]);
             };
         
-        
-        Event.change(cronType, function(){
+        Event.change(cronType.select, function(){
             build();
             evaluate();
         });
         
         for(var i in choosers){
-            Event.change(choosers[i], function(){
+            Event.change(choosers[i].select, function(){
                 evaluate();
             });
         }
