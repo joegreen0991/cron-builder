@@ -187,9 +187,6 @@ var Multiselect = function() {
         this.searchTimeout = null;
 
         this.config.multiple = this.select.getAttribute('multiple') === "multiple";
-        //this.config.onChange = $.proxy(this.config.onChange, this);
-        //this.config.onDropdownShow = $.proxy(this.config.onDropdownShow, this);
-        //this.config.onDropdownHide = $.proxy(this.config.onDropdownHide, this);
 
         // Build select all if enabled.
         this.buildContainer();
@@ -267,30 +264,11 @@ var Multiselect = function() {
             onChange: function(option, checked) {
 
             },
-            /**
-             * Triggered when the dropdown is shown.
-             * 
-             * @param {jQuery} event
-             */
-            onDropdownShow: function(event) {
-
-            },
-            /**
-             * Triggered when the dropdown is hidden.
-             * 
-             * @param {jQuery} event
-             */
-            onDropdownHide: function(event) {
-
-            },
             buttonClass: 'btn btn-default',
             dropRight: false,
             selectedClass: 'active',
             buttonWidth: 'auto',
             buttonContainer: '<div class="btn-group" />',
-            // Maximum height of the dropdown menu.
-            // If maximum height is exceeded a scrollbar will be displayed.
-            maxHeight: false,
             // possible options: 'text', 'value', 'both'
             preventInputChangeEvent: false,
             nonSelectedText: 'None selected',

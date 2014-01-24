@@ -1,26 +1,26 @@
 var Cron = function(){
      
     var Cron = function(parent){
-                    
+                 
             var choosers = {
                 'min'   :  Cron.Chooser({range:{end: 59}},{'multiple':'multiple'}),
                 'hour'  :  Cron.Chooser({range:{end: 23}},{'multiple':'multiple'}),
-                'dow'   :  Cron.Chooser({values:'Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday'.split('|')},{'multiple':'multiple'}),
+                'dow'   :  Cron.Chooser({values:Cron.lang.days.split('|')},{'multiple':'multiple'}),
                 'dom'   :  Cron.Chooser({range:{start:1, end:31}},{'multiple':'multiple'}),
-                'month' :  Cron.Chooser({values:'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec'.split('|')},{'multiple':'multiple'})
+                'month' :  Cron.Chooser({values:Cron.lang.months.split('|')},{'multiple':'multiple'})
             },
                     
-            time = [Util.dom.text(' at '), choosers.hour, Util.dom.text(':'), choosers.min],
+            time = [Util.dom.text(' ' + Cron.lang.at + ' '), choosers.hour, Util.dom.text(':'), choosers.min],
             
             runEvery = {
-                values : ['Minute', 'Hour', 'Day', 'Week', 'Month', 'Year'],
+                values : Cron.lang.options,
                 options: [
                     [],
-                    [Util.dom.text(' at '), choosers.min, Util.dom.text(' minutes past the hour')],
+                    [Util.dom.text(' ' + Cron.lang.at + ' '), choosers.min, Util.dom.text(' ' + Cron.lang.timestring)],
                     time,
-                    [Util.dom.text(' on '), choosers.dow].concat(time),
-                    [Util.dom.text(' on the '), choosers.dom].concat(time),
-                    [Util.dom.text(' on the '), choosers.dom, Util.dom.text(' of '), choosers.month].concat(time)
+                    [Util.dom.text(' '+Cron.lang.on+' '), choosers.dow].concat(time),
+                    [Util.dom.text(' '+Cron.lang.on+' '+Cron.lang.the+' '), choosers.dom].concat(time),
+                    [Util.dom.text(' '+Cron.lang.on+' '+Cron.lang.the+' '), choosers.dom, Util.dom.text(' '+Cron.lang.of+' '), choosers.month].concat(time)
                 ],
                 build : [
                     ['*', '*', '*' , '*', '*'],
@@ -46,7 +46,7 @@ var Cron = function(){
             {
                 parent.innerHTML = '';
 
-                Util.dom.append(parent, [Util.dom.text('Every '), cronType]);
+                Util.dom.append(parent, [Util.dom.text(Cron.lang.every + ' '), cronType]);
 
                 Util.dom.append(parent, runEvery.options[cronType.value]);
             };
@@ -171,33 +171,6 @@ var Cron = function(){
                                     };  
                             }  
                     }(),
-                    hover : function(el, inCallback,outCallback){
-
-                            var inFunc = function(event){
-
-                                    Exports.one(el,'mouseout',outFunc);
-                                    inCallback && inCallback(event);
-                            };
-
-                            var outFunc = function(event){
-
-                                    Exports.one(el,'mouseover',inFunc);
-                                    outCallback && outCallback(event);
-                            };
-
-                            Exports.one(el,'mouseover',inFunc);
-
-                    },
-                    one : function(el,type,callback){
-
-                            var inFunc = function(event){
-                                    Exports.unbind(el,type,inFunc);
-                                    callback && callback(event);
-                            };
-
-                            Exports.bind(el,type,inFunc);
-
-                    },
                     trigger : function(elem, type)
                     {
                         var handler = Cache.get(elem, type);
@@ -218,6 +191,18 @@ var Cron = function(){
             return Exports;
 
     }();
+    
+    Cron.lang = {
+        'days' : 'Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday',
+        'months' : 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec',
+        'options' : ['Minute', 'Hour', 'Day', 'Week', 'Month', 'Year'],
+        'timestring' : 'minutes past the hour',
+        'at' : 'at',
+        'every' : 'Every',
+        'on' : 'on',
+        'of' : 'of',
+        'the' : 'the'
+    };
     
     Cron.Chooser = function(config, options) {
         
